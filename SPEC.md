@@ -132,10 +132,10 @@ Init: `PLAYER_LOGIN` → `if not SettingsPanel then return end` (`Blizzard_Setti
 
 ## Milestones
 
-- [ ] **M1 — Scaffold**: repo, TOC, LICENSE, .pkgmeta, Locales.lua, README. `/ows` prints version. Add row to `AddonManagement\PROJECT_STRUCTURE.md` tree and `webhooks.cs` table (owner creates GitHub repo + CurseForge project).
-- [ ] **M2 — Buttons + Lock**: two title-bar buttons with desaturated art, tooltips, drag handle, `SetUserPlaced(false)`, `OnHide` reset of lock. Manual test: drag, close, reopen → centered.
-- [ ] **M3 — Shade**: off-screen anchor + strip with title/unshade/lock/X, anchor save/restore, `OnHide` reset, `SetPoint` guard. Manual test: shade → open bags → strip stays, panel stays off-screen; ESC while shaded → next open full-size; search text survives shade/unshade; AceConfig (DragonToast_Options) canvas survives shade/unshade.
-- [ ] **M4 — Keybind + slash**: Bindings.xml, live tooltip text, `/ows shade|lock|help`.
+- [x] **M1 — Scaffold**: repo, TOC, LICENSE, .pkgmeta, Locales.lua, README. `/ows` prints version. Add row to `AddonManagement\PROJECT_STRUCTURE.md` tree and `webhooks.cs` table (owner creates GitHub repo + CurseForge project).
+- [x] **M2 — Buttons + Lock**: two title-bar buttons with desaturated art, tooltips, drag handle, `SetUserPlaced(false)`, `OnHide` reset of lock. Manual test: drag, close, reopen → centered.
+- [x] **M3 — Shade**: off-screen anchor + strip with title/unshade/lock/X, anchor save/restore, `OnHide` reset, `SetPoint` guard. Manual test: shade → open bags → strip stays, panel stays off-screen; ESC while shaded → next open full-size; search text survives shade/unshade; AceConfig (DragonToast_Options) canvas survives shade/unshade.
+- [x] **M4 — Keybind + slash**: Bindings.xml, live tooltip text, `/ows shade|lock|help`.
 - [ ] **M5 — Era check**: load on `_classic_era_`, confirm template/texture fallbacks are not hit (or that they look right if they are).
 
 ## Decisions (2026-11-22)
