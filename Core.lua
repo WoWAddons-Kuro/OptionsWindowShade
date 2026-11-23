@@ -200,6 +200,28 @@ local function CreateStrip()
   OWS_State.stripButtons.shade:SetPoint("RIGHT", s.Close, "LEFT", -4, 0)
   OWS_State.stripButtons.lock = CreateIconButton(s, "lock", function() NS.ToggleLock() end)
   OWS_State.stripButtons.lock:SetPoint("RIGHT", OWS_State.stripButtons.shade, "LEFT", -2, 0)
+
+  -- The strip is always draggable (there is nothing to protect while shaded). Where it is dropped
+  -- becomes where the window unshades to: the panel's TOPLEFT is re-anchored under the strip.
+  s:SetMovable(true)
+  s:SetClampedToScreen(true)
+  local h = CreateFrame("Frame", nil, s)
+  h:SetPoint("TOPLEFT", s, "TOPLEFT", 0, 0)
+  h:SetPoint("RIGHT", OWS_State.stripButtons.lock, "LEFT", -2, 0)
+  h:SetHeight(PANEL_TITLEBAR_HEIGHT)
+  h:EnableMouse(true)
+  h:RegisterForDrag("LeftButton")
+  h:SetScript("OnDragStart", function() s:StartMoving() end)
+  h:SetScript("OnDragStop", function()
+    s:StopMovingOrSizing()
+    s:SetUserPlaced(false)
+    -- The strip has the panel's scale, so its TOPLEFT in UIParent space is the panel's TOPLEFT.
+    local left, top = s:GetLeft(), s:GetTop()
+    if left and top then
+      OWS_State.savedPoints = { { "TOPLEFT", UIParent, "BOTTOMLEFT", left, top } }
+    end
+  end)
+  s.DragHandle = h
   return s
 end
 
