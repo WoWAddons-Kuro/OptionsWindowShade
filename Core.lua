@@ -10,6 +10,7 @@ local ADDON, NS = ...
 local L = NS.L
 
 local PANEL_TITLEBAR_HEIGHT = 26   -- band at the top of SettingsPanel that acts as the drag handle
+local STRIP_HEIGHT = 44            -- SettingsFrameTemplate: title tile + enough body for the nine-slice bottom edge to close cleanly
 local BUTTON_SIZE = 18
 local ALPHA_REST, ALPHA_HOVER = 0.55, 1.0
 
@@ -113,9 +114,35 @@ local function SetUnlocked(unlocked)
   RefreshIcons()
 end
 
+local function CapturePanelPoints()
+  local pts = {}
+  for i = 1, SettingsPanel:GetNumPoints() do pts[i] = { SettingsPanel:GetPoint(i) } end
+  return pts
+end
+
+local function RestorePanelPoints(pts)
+  OWS_State.applyingOurAnchor = true
+  SettingsPanel:ClearAllPoints()
+  if pts and #pts > 0 then
+    for _, p in ipairs(pts) do SettingsPanel:SetPoint(unpack(p, 1, 5)) end
+  else
+    SettingsPanel:SetPoint("CENTER")
+  end
+  OWS_State.applyingOurAnchor = false
+end
+
 function NS.ToggleLock()
   if not PanelIsOpen() then return false end
-  SetUnlocked(not OWS_State.unlocked)
+  if OWS_State.unlocked then
+    -- Locking snaps the window back to where it was when it was unlocked: a moved position
+    -- is never kept, so there is no point leaving it somewhere it will not stay.
+    if not OWS_State.shaded then RestorePanelPoints(OWS_State.lockedPoints) end
+    OWS_State.lockedPoints = nil
+    SetUnlocked(false)
+  else
+    OWS_State.lockedPoints = CapturePanelPoints()
+    SetUnlocked(true)
+  end
   return true
 end
 
@@ -147,34 +174,26 @@ local function ApplyOffscreenAnchor()
 end
 
 local function CreateStrip()
-  -- NineSliceUtil is the Lua side of NineSlicePanelTemplate; present on Mainline/Forever and Era 1.15+.
-  -- Fall back to a plain backdrop anywhere it is missing.
-  local hasNineSlice = NineSliceUtil ~= nil and NineSliceUtil.ApplyLayoutByName ~= nil
-  local s = CreateFrame("Frame", "OptionsWindowShade_Strip", UIParent, hasNineSlice and "NineSlicePanelTemplate" or "BackdropTemplate")
+  -- Inherit the panel's own chrome template (Bg + NineSlice/title tile + Text + ClosePanelButton),
+  -- so the strip is pixel-identical to the real title bar on every flavour; it is just short.
+  local s = CreateFrame("Frame", "OptionsWindowShade_Strip", UIParent, "SettingsFrameTemplate")
   s:SetFrameStrata("HIGH")
-  s:SetHeight(PANEL_TITLEBAR_HEIGHT)
+  s:SetHeight(STRIP_HEIGHT)
   s:EnableMouse(true)   -- swallow clicks so the world behind the strip is not hit
   s:Hide()
-  if hasNineSlice then
-    NineSliceUtil.ApplyLayoutByName(s, "ButtonFrameTemplateNoPortrait")
-    s.Bg = s:CreateTexture(nil, "BACKGROUND")
-    s.Bg:SetPoint("TOPLEFT", 7, -3); s.Bg:SetPoint("BOTTOMRIGHT", -3, 3)
-    s.Bg:SetColorTexture(0.05, 0.05, 0.05, 0.95)
-  else
-    s:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
-    s:SetBackdropColor(0.05, 0.05, 0.05, 0.95)
-    s:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+
+  s.Title = s.NineSlice and s.NineSlice.Text
+  if not s.Title then
+    s.Title = s:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    s.Title:SetPoint("TOP", 0, -5)
   end
 
-  s.Title = s:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  s.Title:SetPoint("TOP", 0, -5)
-  s.Title:SetPoint("LEFT", 60, 0)
-  s.Title:SetPoint("RIGHT", -60, 0)
-  s.Title:SetWordWrap(false)
-
   -- Same X as the real title bar; routes through SettingsPanel:Close() so discard-confirm works.
-  s.Close = CreateFrame("Button", nil, s, "UIPanelCloseButton")
-  s.Close:SetPoint("TOPRIGHT", s, "TOPRIGHT", 2, 1)
+  s.Close = s.ClosePanelButton
+  if not s.Close then
+    s.Close = CreateFrame("Button", nil, s, "UIPanelCloseButton")
+    s.Close:SetPoint("TOPRIGHT", s, "TOPRIGHT", 2, 1)
+  end
   s.Close:SetScript("OnClick", function() if SettingsPanel then SettingsPanel:Close() end end)
 
   OWS_State.stripButtons.shade = CreateIconButton(s, "shade", function() NS.ToggleShade() end)
@@ -190,10 +209,7 @@ local function Shade()
   local left, top, width = panel:GetLeft(), panel:GetTop(), panel:GetWidth()
   local scale = panel:GetScale()
 
-  OWS_State.savedPoints = {}
-  for i = 1, panel:GetNumPoints() do
-    OWS_State.savedPoints[i] = { panel:GetPoint(i) }
-  end
+  OWS_State.savedPoints = CapturePanelPoints()
 
   OWS_State.shaded = true
   ApplyOffscreenAnchor()
@@ -215,15 +231,7 @@ local function Unshade()
   if not OWS_State.shaded then return end
   OWS_State.shaded = false
   OWS_State.strip:Hide()
-  local panel = SettingsPanel
-  OWS_State.applyingOurAnchor = true
-  panel:ClearAllPoints()
-  if OWS_State.savedPoints and #OWS_State.savedPoints > 0 then
-    for _, p in ipairs(OWS_State.savedPoints) do panel:SetPoint(unpack(p, 1, 5)) end
-  else
-    panel:SetPoint("CENTER")
-  end
-  OWS_State.applyingOurAnchor = false
+  RestorePanelPoints(OWS_State.savedPoints)
   OWS_State.savedPoints = nil
   RefreshIcons()
 end
@@ -248,6 +256,7 @@ end
 
 local function ResetAll()
   Unshade()
+  OWS_State.lockedPoints = nil
   SetUnlocked(false)
   if SettingsPanel then SettingsPanel:SetUserPlaced(false) end
 end
