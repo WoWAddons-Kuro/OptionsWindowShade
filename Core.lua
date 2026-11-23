@@ -278,9 +278,18 @@ end
 
 local function ResetAll()
   Unshade()
+  -- Position always resets (Blizzard re-centres on ShowUIPanel); the lock state does not:
+  -- an unlocked window stays unlocked for the rest of the session so it can be dragged again
+  -- straight away. lockedPoints is re-captured on the next OnShow.
   OWS_State.lockedPoints = nil
-  SetUnlocked(false)
   if SettingsPanel then SettingsPanel:SetUserPlaced(false) end
+end
+
+local function OnPanelShow()
+  if OWS_State.unlocked then
+    OWS_State.lockedPoints = CapturePanelPoints()
+  end
+  RefreshIcons()
 end
 
 local function Build()
@@ -303,6 +312,7 @@ local function Build()
   OWS_State.strip = CreateStrip()
 
   panel:HookScript("OnHide", ResetAll)
+  panel:HookScript("OnShow", OnPanelShow)
   hooksecurefunc(panel, "SetPoint", OnPanelSetPoint)
   RefreshIcons()
 end
