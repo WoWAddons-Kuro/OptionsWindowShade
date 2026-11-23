@@ -1,0 +1,10 @@
+package-as: OptionsWindowShade
+
+ignore:
+  - README.md
+  - SPEC.md
+  - Assets
+  - Media/OptionsWindowShade_256.png
+  - .github
+  - .gitignore
+  - .pkgmeta

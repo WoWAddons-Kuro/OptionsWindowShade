@@ -1,0 +1,11 @@
+<Bindings>
+	<!-- Header/name strings (BINDING_HEADER_OPTIONSWINDOWSHADE, BINDING_NAME_OPTIONSWINDOWSHADE_*)
+	     are set from Locales.lua. Both bindings ship with NO default key and do nothing unless
+	     the Options window is open. The bodies are globals defined in Core.lua. -->
+	<Binding name="OPTIONSWINDOWSHADE_TOGGLE_SHADE" category="BINDING_HEADER_OPTIONSWINDOWSHADE">
+		OptionsWindowShade_ToggleShade();
+	</Binding>
+	<Binding name="OPTIONSWINDOWSHADE_TOGGLE_LOCK" category="BINDING_HEADER_OPTIONSWINDOWSHADE">
+		OptionsWindowShade_ToggleLock();
+	</Binding>
+</Bindings>
