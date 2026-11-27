@@ -2,7 +2,7 @@
 ## Title: OptionsWindowShade
 ## Notes: Two subtle title-bar buttons for the Options window: shade it down to its title bar, or unlock it and drag it out of the way. Nothing is remembered; it always reopens centered.
 ## Author: Kuro
-## Version: @project-version@
+## Version: v2026.11.27.0534
 ## IconTexture: Interface\AddOns\OptionsWindowShade\Media\OptionsWindowShade.tga
 ## X-Website: https://github.com/WoWAddons-Kuro/OptionsWindowShade
 ## X-Category: Interface Enhancements
